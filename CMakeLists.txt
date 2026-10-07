@@ -63,8 +63,12 @@ if(UNIX AND NOT APPLE)
             DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/512x512/apps)
     install(FILES packaging/linux/com.github.sonybridge.sony-device-center.metainfo.xml
             DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    # systemd only searches lib/systemd/user, never the arch-specific
+    # CMAKE_INSTALL_LIBDIR (lib64 on Fedora, lib/<triplet> on Debian with /usr).
+    set(SONY_SYSTEMD_USER_UNIT_DIR "lib/systemd/user" CACHE STRING
+        "Install directory for the sonyd systemd user unit, relative to the prefix")
     install(FILES packaging/linux/sonyd.service
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/systemd/user OPTIONAL)
+            DESTINATION ${SONY_SYSTEMD_USER_UNIT_DIR} OPTIONAL)
 endif()
 
 # Packaging via CPack
