@@ -146,6 +146,8 @@ private:
     bool _isCharging{false};
     QString _noiseControlMode{"unknown"};
     int _ambientLevel{10};
+    // Last valid level sent; used when readback leaves _ambientLevel at 0 (e.g. WH-1000XM6).
+    int _lastAmbientLevel{10};
     bool _focusOnVoice{false};
     int _equalizerPreset{0x00};
     QString _equalizerPresetName{"Off"};

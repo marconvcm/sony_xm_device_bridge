@@ -151,7 +151,11 @@ bool DeviceCenterController::hasAdaptiveVolume() const { return _capabilities.va
 QVariantList DeviceCenterController::pairedDevices() const { return _pairedDevices; }
 
 void DeviceCenterController::setAnc(bool enabled) { _send("anc", {{"enabled",enabled}}); }
-void DeviceCenterController::setAmbient(int level, bool voice) { _send("ambient", {{"level",level},{"focusOnVoice",voice}}); }
+void DeviceCenterController::setAmbient(int level, bool voice) {
+    if (level < 1 || level > 20) level = _lastAmbientLevel;
+    _lastAmbientLevel = level;
+    _send("ambient", {{"level",level},{"focusOnVoice",voice}});
+}
 void DeviceCenterController::setNoiseControlOff() { setAnc(false); }
 void DeviceCenterController::setEqualizerPreset(int preset) { _send("eqPreset", {{"preset",preset}}); }
 void DeviceCenterController::setEqualizerCustom(int bass, const QVariantList& bands) {
