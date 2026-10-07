@@ -80,6 +80,32 @@ private slots:
         QTRY_COMPARE_WITH_TIMEOUT(controller.noiseControlMode(),QString("ambient"),1000);
         QCOMPARE(controller.ambientLevel(),12);
     }
+    void ambientWithUnknownLevelUsesFallback() {
+        auto transport = std::make_shared<ReplyTransport>();
+        auto service = std::make_shared<core::DeviceService>(transport);
+        service->connect(transport::DeviceAddress("11:22:33:44:55:66"),"WH-1000XM6");
+        DeviceCenterController controller(nullptr, service);
+        QTRY_VERIFY_WITH_TIMEOUT(!controller.busy(),2000);
+        QCOMPARE(controller.ambientLevel(),0);
+        auto lastAmbientLevel = [&transport]() -> int {
+            int level = -1;
+            for (const auto& bytes : transport->sentFrames()) {
+                const auto p = protocol::FrameCodec::decode(bytes).payload;
+                if (p.size() == 7 && p[0] == 0x68 && p[1] == 0x17) level = p[6];
+            }
+            return level;
+        };
+        controller.setAmbient(controller.ambientLevel(), false);
+        QTRY_VERIFY_WITH_TIMEOUT(!controller.busy(),2000);
+        QVERIFY2(controller.lastError().isEmpty(), qPrintable(controller.lastError()));
+        QCOMPARE(lastAmbientLevel(),10);
+        controller.setAmbient(15, false);
+        QTRY_VERIFY_WITH_TIMEOUT(!controller.busy(),2000);
+        controller.setAmbient(0, true);
+        QTRY_VERIFY_WITH_TIMEOUT(!controller.busy(),2000);
+        QVERIFY2(controller.lastError().isEmpty(), qPrintable(controller.lastError()));
+        QCOMPARE(lastAmbientLevel(),15);
+    }
     void destructionDrainsWorkerAndCallbacks() {
         auto service = std::make_shared<SlowService>();
         auto controller = std::make_unique<DeviceCenterController>(nullptr,service);
