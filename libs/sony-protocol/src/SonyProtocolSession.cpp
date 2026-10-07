@@ -208,10 +208,7 @@ void SonyProtocolSession::_handleDecodedFrame(const SonyFrame& frame) {
     }
 
     if (frame.type == DataType::DataMdr) {
-        std::string desc = Logger::describePayload(frame.payload);
-        if (!desc.empty()) {
-            Logger::debug(LogCategory::Protocol, desc);
-        }
+        Logger::logRx(frame.payload, Logger::describePayload(frame.payload));
 
         // Send ACK back to device with toggled 1-bit sequence
         try {
