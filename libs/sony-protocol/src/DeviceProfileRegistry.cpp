@@ -103,6 +103,7 @@ const std::vector<DeviceProfile>& getStaticProfiles() {
                 .equalizer = true,
                 .clearBass = false,
                 .tenBandEqualizer = true,
+                .noiseControlType19 = true,
                 .dsee = true,
                 .speakToChat = true,
                 .adaptiveVolume = true,
