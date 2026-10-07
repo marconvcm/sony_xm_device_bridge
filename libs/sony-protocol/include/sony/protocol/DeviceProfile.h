@@ -46,6 +46,11 @@ struct DeviceCapabilities
     // Clear Bass layout (inquired type 0x00/0x01). Verified on the WH-1000XM6
     // via a Sound Connect btsnoop capture -- see issue #10.
     bool tenBandEqualizer = false;
+    // True on devices that report noise control under inquired type 0x19
+    // (9-byte payload) and answer type 0x17 inquiries with all zeros.
+    // Verified on the WH-1000XM6 (firmware 3.1.5) from 0x69 0x19
+    // notifications sent when the NC/AMB button is pressed.
+    bool noiseControlType19 = false;
 
     bool dsee = false;
 

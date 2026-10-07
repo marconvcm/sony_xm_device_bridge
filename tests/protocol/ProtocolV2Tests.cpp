@@ -225,3 +225,25 @@ TEST_CASE("ProtocolV2: handles peripheral feature inquiries", "[protocol][v2]")
         REQUIRE(codec == "LDAC");
     }
 }
+
+TEST_CASE("ProtocolV2: reads noise control via inquired type 0x19 (WH-1000XM6)", "[protocol][v2]")
+{
+    ReplyingFakeTransport fake;
+    SonyProtocolSession session(&fake);
+    session.connect("11:22:33:44:55:66");
+
+    ProtocolV2 v2(session, true, true);
+
+    // Captured from a WH-1000XM6 (firmware 3.1.5) in Ambient, level 10.
+    fake.queueReply({ SonyFrame{ .type = DataType::Ack, .sequence = 0 },
+                      SonyFrame{ .type = DataType::DataMdr, .sequence = 1,
+                                 .payload = {0x67, 0x19, 0x01, 0x01, 0x01, 0x00, 0x0a, 0x00, 0x00} } });
+
+    auto nc = v2.getNoiseControl();
+    REQUIRE(nc.mode == NoiseControlMode::Ambient);
+    REQUIRE(nc.ambientLevel == 10);
+    REQUIRE_FALSE(nc.focusOnVoice);
+
+    auto sent = FrameCodec::decode(fake.sentFrames().front());
+    REQUIRE(sent.payload == std::vector<uint8_t>{0x66, 0x19});
+}

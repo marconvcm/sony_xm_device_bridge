@@ -12,8 +12,10 @@ public:
     // (inquired type 0x04, no separate Clear Bass slot) used by devices such
     // as the WH-1000XM6, instead of the legacy 5-band + Clear Bass format
     // (inquired type 0x00) shared with ProtocolV1. See DeviceProfile.h and
-    // issue #10.
-    explicit ProtocolV2(SonyProtocolSession& session, bool tenBandEqualizer = false);
+    // issue #10. noiseControlType19 selects inquired type 0x19 for
+    // noise-control readback (DeviceCapabilities::noiseControlType19).
+    explicit ProtocolV2(SonyProtocolSession& session, bool tenBandEqualizer = false,
+                        bool noiseControlType19 = false);
     ~ProtocolV2() override = default;
 
     [[nodiscard]] ProtocolGeneration generation() const noexcept override {
@@ -51,6 +53,7 @@ private:
     SonyProtocolSession& _session;
     std::mutex _mutex;
     bool _tenBandEqualizer;
+    bool _noiseControlType19;
 };
 
 } // namespace sony::protocol

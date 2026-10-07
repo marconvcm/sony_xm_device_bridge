@@ -148,6 +148,31 @@ TEST_CASE("DeviceEventDispatcher parses noise control notifications", "[events]"
     CHECK_FALSE(receivedNc.focusOnVoice);
 }
 
+TEST_CASE("DeviceEventDispatcher parses type 0x19 noise control notifications (WH-1000XM6)", "[events]") {
+    DeviceEventDispatcher dispatcher;
+    DeviceState state;
+
+    NoiseControlState receivedNc;
+    int ncEventCount = 0;
+    dispatcher.onNoiseControlChanged([&](const NoiseControlChanged& evt) {
+        ncEventCount++;
+        receivedNc = evt.noiseControl;
+    });
+
+    // Captured from a WH-1000XM6 (firmware 3.1.5) when pressing the NC/AMB button.
+    std::vector<uint8_t> ambientPayload = {0x69, 0x19, 0x01, 0x01, 0x01, 0x00, 0x03, 0x00, 0x00};
+    CHECK(dispatcher.parseNotificationPayload(ambientPayload, state));
+    CHECK(ncEventCount == 1);
+    CHECK(receivedNc.mode == NoiseControlMode::Ambient);
+    CHECK(receivedNc.ambientLevel == 3);
+
+    std::vector<uint8_t> ncPayload = {0x69, 0x19, 0x01, 0x01, 0x00, 0x00, 0x03, 0x00, 0x00};
+    CHECK(dispatcher.parseNotificationPayload(ncPayload, state));
+    CHECK(ncEventCount == 2);
+    CHECK(receivedNc.mode == NoiseControlMode::NoiseCancelling);
+    CHECK(receivedNc.ambientLevel == 0);
+}
+
 TEST_CASE("DeviceEventDispatcher parses equalizer notifications", "[events]") {
     DeviceEventDispatcher dispatcher;
     DeviceState state;

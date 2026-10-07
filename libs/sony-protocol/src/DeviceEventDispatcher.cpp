@@ -165,7 +165,7 @@ bool DeviceEventDispatcher::parseNotificationPayload(const std::vector<uint8_t>&
 
     // NC / ASM notification: 0x67 or 0x69
     if (opcode == 0x67 || opcode == 0x69) {
-        if (payload.size() >= 7 && payload[1] == 0x17 && payload[2] == 0x01) {
+        if (payload.size() >= 7 && (payload[1] == 0x17 || payload[1] == 0x19) && payload[2] == 0x01) {
             bool on = (payload[3] != 0);
             bool ambient = (payload[4] != 0);
             bool voice = (payload[5] != 0);

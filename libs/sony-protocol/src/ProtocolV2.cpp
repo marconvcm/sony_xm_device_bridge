@@ -26,8 +26,8 @@ int apoIndexFromCode(uint8_t c0, uint8_t c1) {
 
 } // namespace
 
-ProtocolV2::ProtocolV2(SonyProtocolSession& session, bool tenBandEqualizer)
-    : _session(session), _tenBandEqualizer(tenBandEqualizer) {}
+ProtocolV2::ProtocolV2(SonyProtocolSession& session, bool tenBandEqualizer, bool noiseControlType19)
+    : _session(session), _tenBandEqualizer(tenBandEqualizer), _noiseControlType19(noiseControlType19) {}
 
 void ProtocolV2::initDevice() {
     // V2 handshake init: 0x00 0x00 -> RET 0x01
@@ -94,14 +94,16 @@ BatteryState ProtocolV2::getBattery() {
 
 NoiseControlState ProtocolV2::getNoiseControl() {
     // GET: 66 17 -> RET: 67 17 01 <effect> <settingType 0=NC/1=Ambient> <voice> <level>
+    // Type 0x19 devices (WH-1000XM6) use the same first seven bytes plus two trailing bytes.
+    const uint8_t inquired = _noiseControlType19 ? 0x19 : 0x17;
     auto resp = _session.sendAndAwaitResponse(
-        SonyFrame{ .type = DataType::DataMdr, .payload = {0x66, 0x17} },
+        SonyFrame{ .type = DataType::DataMdr, .payload = {0x66, inquired} },
         0x67,
         -1,
         std::chrono::milliseconds(1000)
     );
 
-    if (resp.payload.size() < 7 || resp.payload[1] != 0x17 || resp.payload[2] != 1)
+    if (resp.payload.size() < 7 || resp.payload[1] != inquired || resp.payload[2] != 1)
         throw SonyException(SonyErrorCode::InvalidResponse, "Malformed noise-control response");
     NoiseControlState state;
     if (resp.payload.size() >= 7) {
